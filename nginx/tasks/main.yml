@@ -1,0 +1,107 @@
+- name: Add Nginx key
+  apt_key:
+    url: http://nginx.org/keys/nginx_signing.key
+    state: present
+  when: not use_ubuntu_nginx
+
+- name: Add Nginx repository.
+  apt_repository:
+    repo: 'deb http://nginx.org/packages/ubuntu/ xenial nginx'
+    state: present
+    update_cache: yes
+  when: not use_ubuntu_nginx
+
+- name: Installing dependencies
+  package:
+    name: nginx
+    state: present
+    
+- name: Make sure that the directories sites-available and sites-enabled exist
+  file:
+    path: /etc/nginx/sites-{{ item }}
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - "available"
+    - "enabled"
+    
+- name: Remove the default nginx config
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "/etc/nginx/sites-enabled/default"
+    - "/etc/nginx/conf.d/default"
+    
+- name: Upload the nginx parameters file
+  copy:
+    src: files/params.conf
+    dest: /etc/nginx/conf.d/params.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy the superdesk config
+  template:
+    src: templates/superdesk.conf 
+    dest: /etc/nginx/sites-available/superdesk.conf
+    owner: root
+    group: root
+    mode: 0644
+  when: base_config == 'superdesk'
+  
+# To do: Mail Config test
+- name: Copy the newsroom config
+  template:
+    src: templates/newsroom.conf 
+    dest: /etc/nginx/sites-available/newsroom.conf
+    owner: root
+    group: root
+    mode: 0644
+  when: base_config == 'superdesk' or base_config == 'wp&superdesk'
+  
+- name: Copy the superdesk config for webpublisher
+  template:
+    src: files/superdesk.inc
+    dest: /etc/nginx/sites-available/superdesk.inc
+    owner: root
+    group: root
+    mode: 0644
+  when: base_config == 'wp&superdesk'
+
+- name: Copy the webpublisher config
+  template:
+    src: templates/webpublisher.conf 
+    dest: /etc/nginx/sites-available/webpublisher.conf
+    owner: root
+    group: root
+    mode: 0644
+  when: base_config == 'webpublisher' or base_config == 'wp&superdesk'
+  
+- name: Enable the superdesk config
+  file:
+    src: /etc/nginx/sites-available/superdesk.conf
+    dest: /etc/nginx/sites-enabled/superdesk.conf
+    state: link
+  when: base_config == 'superdesk'
+  
+- name: Enable the newsroom config
+  file:
+    src: /etc/nginx/sites-available/newsroom.conf
+    dest: /etc/nginx/sites-enabled/newsroom.conf
+    state: link
+  when: base_config == 'superdesk' or base_config == 'wp&superdesk'
+  
+- name: Enable the webpublisher config
+  file:
+    src: /etc/nginx/sites-available/webpublisher.conf
+    dest: /etc/nginx/sites-enabled/webpublisher.conf
+    state: link
+  when: base_config == 'webpublisher' or base_config == 'wp&superdesk'
+  
+- name: Apply the changes
+  shell: "ls -l /etc/nginx/sites-enabled/"
+  notify: restart nginx
+  

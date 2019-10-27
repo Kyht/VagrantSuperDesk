@@ -1,0 +1,43 @@
+- name: install Psycopg2
+  package: 
+    name: python3-psycopg2
+    state: present
+
+- name: install Postgresql
+  package:
+    name: postgresql
+    state: present
+
+- name: Create database Superdesk
+  become: true
+  become_user: postgres
+  postgresql_db:
+    name: "{{ database_name }}"
+
+- name: Create spnews  user and give him full permissions to superdesk table
+  become: true
+  become_user: postgres
+  postgresql_user:
+    db: "{{ database_name }}"
+    name: "{{ database_user }}"
+    password: "{{ database_user_password }}"
+    priv: ALL
+    encrypted: true
+    
+- name: Ensure that Postgresql listens to its public IP address
+  lineinfile:
+    path: /etc/postgresql/10/main/postgresql.conf
+    regexp: '^listen_addresses'
+    line: "listen_addresses = '{{ public_ip }},127.0.0.1'"
+    state: present
+    insertafter: '# - Connection Settings -'
+  notify: restart postgresql
+  when: not local_db
+  
+- name: Allow connections from other hosts
+  lineinfile:
+    path: /etc/postgresql/10/main/pg_hba.conf
+    line: "host    all             all             0.0.0.0/0               md5"
+    state: present
+  notify: restart postgresql
+  when: not local_db

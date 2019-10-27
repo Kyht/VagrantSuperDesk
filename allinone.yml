@@ -1,0 +1,26 @@
+- hosts: all
+  roles:
+    - sysupgrade
+    - superdb
+    - bb_keys
+    - es24_docker
+    - newsroom
+    - webpublisher_deps
+    - webpublisher
+    - nginx
+  vars:
+    - database_host: "localhost"
+    - database_port: "5432"
+    - database_name: "superdesk"
+    - database_user: "spnews"
+    - database_user_password: "spnews_pass"
+    - wp_dir: "/var/www/webpublisher"
+    - organization_name: Mike_publishing
+    - tenant_domain: DOMAIN.com
+    - tenant_name: Testing
+    - jwt_passphrase: ""
+    - create_db: false
+    - local_db: true
+    - base_config: "wp&superdesk"
+    - use_ubuntu_nginx: true
+    - use_ubuntu_node: false

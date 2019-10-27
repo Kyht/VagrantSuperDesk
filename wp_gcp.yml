@@ -1,0 +1,21 @@
+- hosts: all
+  roles:
+    - sysupgrade
+    - webpublisher_deps
+    - superdb
+    - geerlingguy.composer
+    - webpublisher
+  vars:
+    database_host: "localhost"
+    database_port: "5432"
+    database_name: "superdesk"
+    database_user: "spnews"
+    database_user_password: "spnews_pass"
+    wp_dir: "/var/www/webpublisher"
+    organization_name: Mike_publishing
+    tenant_domain: 35.237.168.47 # This is required for testing on Vagrant. For the public machines it can be got from the inventory
+    tenant_name: Testing
+    jwt_passphrase: ""
+    create_db: false
+    local_db: true
+    ansible_python_interpreter: "/usr/bin/python3"

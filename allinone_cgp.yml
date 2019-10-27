@@ -1,0 +1,31 @@
+- hosts: all
+  roles:
+    - sysupgrade
+    - cloudpg
+    - bb_keys
+    - es24_docker
+    - newsroom
+    - webpublisher_deps
+    - webpublisher
+    - nginx
+  vars:
+    database_host: "x.x.x.x"
+    database_port: "5432"
+    database_name: "superdesk"
+    database_user: "spnews"
+    database_user_password: "spnews_pass"
+    postgres_admin: "postgres"
+    postgres_admin_password: ""
+    create_db: false
+    wp_dir: "/var/www/webpublisher"
+    organization_name: publishing
+    tenant_domain: DOMAIN.com
+    tenant_subdomain: stage
+    full_hostname: www.DOMAIN.com
+    tenant_name: Testing
+    jwt_passphrase: ""
+    base_config: "wp&superdesk"
+    use_ubuntu_nginx: true
+    use_ubuntu_node: false
+    celery_host: "10.0.0.3"
+    ansible_python_interpreter: "/usr/bin/python3"

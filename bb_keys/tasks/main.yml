@@ -1,0 +1,15 @@
+- name: Upload the private key to the server
+  copy:
+    src: keys/readonly.pem
+    dest: /root/.ssh/readonly.pem
+    owner: root
+    group: root
+    mode: 0400
+    
+- name: Copy the config file
+  copy:
+    src: keys/config
+    dest: /root/.ssh/config
+    owner: root
+    group: root
+    mode: 664 

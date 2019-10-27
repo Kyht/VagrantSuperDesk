@@ -1,0 +1,16 @@
+[Unit]
+Description=Elasticsearch Docker  
+Requires=docker.service
+
+[Service]
+User=container
+#ExecStartPre=/bin/sleep 1  
+ExecStartPre=/usr/bin/docker build -t es24 /home/container/es24/
+ExecStart=/usr/bin/docker run --name=es2 -p 9400:9200 -p 9500:9300 --volume estmp:/var/tmp/elasticsearch --volume eslib:/var/lib/elasticsearch es24
+ExecStop=/usr/bin/docker stop es2
+ExecStopPost=/usr/bin/docker rm -f es2
+ExecReload=/usr/bin/docker restart es2
+TimeoutStartSec=infinity
+
+[Install]
+WantedBy=multi-user.target 

@@ -1,0 +1,10 @@
+- hosts: all
+  strategy: debug
+  roles:
+    - sysupgrade
+    - bb_keys
+    - es24_docker
+    - newsroom
+  vars:
+    - use_ubuntu_nginx: true
+    - use_ubuntu_node: true

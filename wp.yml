@@ -1,0 +1,22 @@
+- hosts: all
+  roles:
+    - sysupgrade
+    - bb_keys
+    - webpublisher_deps
+    - webpublisher
+    - nginx
+  vars:
+    - database_host: "192.168.13.4"
+    - database_port: "5432"
+    - database_name: "superdesk"
+    - database_user: "spnews"
+    - database_user_password: "spnews_pass"
+    - wp_dir: "/var/www/webpublisher"
+    - organization_name: Mike_publishing
+    - tenant_domain: 192.168.13.6 # This is required for testing on Vagrant. For the public machines it can be got from the inventory
+    - tenant_name: Testing
+    - jwt_passphrase: ""
+    - create_db: false
+    - base_config: "webpublisher"
+    - use_ubuntu_nginx: true
+    - use_ubuntu_node: false

@@ -1,0 +1,7 @@
+- hosts: all
+  roles:
+    - sysupgrade
+    - superdb
+  vars:
+    - public_ip: 192.168.13.4
+    - local_db: no

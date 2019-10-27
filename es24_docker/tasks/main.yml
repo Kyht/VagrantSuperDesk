@@ -1,0 +1,69 @@
+- name: Install Docker
+  package:
+    name: docker.io
+    state: present
+
+- name: Install pip
+  package:
+    name: python3-pip
+    state: present
+    
+- name: Install Docker for Python
+  pip:
+    name: docker-py
+
+- name: Add the Container user
+  user:
+    name: container
+    shell: /usr/sbin/nologin
+    groups: docker
+    append: yes
+
+- name: Create docker directory
+  file:
+    path: /home/container/es24
+    state: directory
+    owner: container
+    group: container
+    mode: 0755
+
+- name: Copy the docker files
+  copy:
+    src: files/{{ item }}
+    dest: /home/container/es24/{{ item }}
+    owner: container
+    group: container
+    mode: 0644
+  with_items:
+    - Dockerfile
+    - es.conf
+    - run_es.sh
+
+    
+- name: Build image
+  docker_image:
+     path: /home/container/es24/
+     name: es24
+     
+- name: Copy up the service for Elasticsearch 2.4
+  copy:
+    src: files/es2.service
+    dest: /etc/systemd/system/es2.service
+    owner: root
+    group: root
+    mode: 0644
+    
+- name: Run daemon-reload
+  systemd:
+    daemon_reload: yes
+    
+- name: Enable Elasticsearch 2.4 on boot
+  service:
+    name: es2
+    enabled: yes
+    
+- name: Start service ES2
+  service:
+    name: es2
+    state: started
+    

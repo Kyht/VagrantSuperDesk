@@ -1,0 +1,23 @@
+[Unit]
+Description=superdesk
+Wants=network.target
+After=network.target
+
+[Service]
+User=pyrunner
+Environment=PUBLISHER_API_DOMAIN={{ tenant_domain  }}
+Environment=PUBLISHER_API_SUBDOMAIN={% if tenant_subdomain is defined %}{{ tenant_subdomain }}{% else %}''{% endif %}
+Environment=HOST={% if tenant_subdomain is defined %}{{ tenant_subdomain }}.{{ tenant_domain }}{% else %}{{ tenant_domain }}{% endif %}
+
+Environment=CELERY_HOST={{ celery_host }}
+Environment=PUBLISHER_WS_DOMAIN={% if tenant_subdomain is defined %}"{{ tenant_subdomain }}.{{ tenant_domain }}"{% else %}{{ tenant_domain }}{% endif %}
+
+Environment=PUBLISHER_WS_PORT=443
+Environment=PUBLISHER_WS_PATH=/ws/
+ExecStart=/bin/bash -c '. /opt/superdesk/activate.sh; exec honcho start --no-colour'
+WorkingDirectory=/opt/superdesk/server
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

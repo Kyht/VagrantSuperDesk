@@ -1,0 +1,22 @@
+- name: install Psycopg2
+  package: 
+    name: python3-psycopg2
+    state: present
+
+- name: Create database Superdesk
+  postgresql_db:
+    name: "{{ database_name }}"
+    login_host: "{{ database_host }}"
+    login_user: "{{ postgres_admin }}"
+    login_password: "{{ postgres_admin_password }}"
+
+- name: Create spnews  user and give him full permissions to superdesk table
+  postgresql_user:
+    db: "{{ database_name }}"
+    name: "{{ database_user }}"
+    password: "{{ database_user_password }}"
+    login_host: "{{ database_host }}"
+    login_user: "{{ postgres_admin }}"
+    login_password: "{{ postgres_admin_password }}"
+    priv: ALL
+    encrypted: true

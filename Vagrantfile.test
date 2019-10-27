@@ -1,0 +1,18 @@
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "ubuntu/bionic64"
+
+  config.vm.define "postgres"
+  config.vm.define "newsroom1"
+  config.vm.define "webpublisher1"
+
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "playbook.yml"
+    ansible.groups = {
+      "databases" => ["postgres"],
+      "newsrooms" => ["newsroom1"],
+      "webpublishers" => ["webpublisher1"],
+    }
+    ansible.become = true
+  end
+end

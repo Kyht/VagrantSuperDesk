@@ -1,0 +1,168 @@
+#- name: Add Elasticsearch apt key.
+  #apt_key:
+    #url: https://packages.elastic.co/GPG-KEY-elasticsearch
+    #state: present
+
+#- name: Add Elasticsearch repository.
+  #apt_repository:
+    #repo: 'deb https://artifacts.elastic.co/packages/5.x/apt stable main stable main'
+    #state: present
+    #update_cache: yes
+    
+- name: Add ZeroMQ apt key.
+  apt_key:
+    url: https://download.opensuse.org/repositories/network:/messaging:/zeromq:/release-stable/xUbuntu_18.04/Release.key
+    state: present
+
+- name: Add ZeroMQ repository.
+  apt_repository:
+    repo: 'deb https://download.opensuse.org/repositories/network:/messaging:/zeromq:/release-stable/xUbuntu_18.04/ ./'
+    state: present
+    update_cache: yes
+
+- name: Installing dependencies
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "php-fpm"
+    - "php7.2"
+    - "php7.2-dev"
+    - "php7.2-intl"
+    - "php7.2-pgsql"
+    - "php7.2-json"
+    - "php-tokenizer"
+    - "php7.2-mbstring"
+    - "php7.2-curl"
+    - "php-zip"
+    - "php-gd"
+    - "memcached"
+    - "php-memcached"
+    - "php7.2-bcmath"
+    - "rabbitmq-server"
+    - "supervisor"
+    - "git"
+    - "openjdk-8-jdk-headless"
+    - "php-pear"
+    - "build-essential"
+    - "pkg-config"
+    - "re2c"
+    - "libzmq3-dev"
+    - "unzip"
+    - "composer"
+    
+- name: Install Elasticsearch .deb package from the internet.
+  apt:
+    deb: https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.6.13.deb
+    
+#- name: Configure Elasticsearch.
+  #template:
+    #src: elasticsearch.yml.j2
+    #dest: /etc/elasticsearch/elasticsearch.yml
+    #owner: root
+    #group: elasticsearch
+    #mode: 0750
+  #notify: restart elasticsearch
+
+- name: Start Elasticsearch.
+  service: name=elasticsearch state=started enabled=yes
+
+- name: Make sure Elasticsearch is running before proceeding.
+  wait_for: host={{ elasticsearch_network_host }} port={{ elasticsearch_http_port }} delay=3 timeout=300
+  
+- name: Installing zmq-beta from Pecl
+  shell: if /usr/bin/php -m | grep -q zmq; then printf "ZMQ is installed \n"; else /usr/bin/printf "\n\n" | /usr/bin/pecl install zmq-beta; fi
+  #pear:
+    #name: pecl/zmq-beta
+    #state: installed
+
+- name: Upload ZMQ PHP extension config file
+  copy:
+    src: files/zmq.ini
+    dest: /etc/php/7.2/mods-available
+    owner: root
+    group: root
+    mode: 0777
+    
+- name: Enable ZMQ extension
+  shell: phpenmod zmq
+
+- name: Setting up PHP timezone
+  lineinfile:
+    path: /etc/php/7.2/fpm/php.ini
+    regexp: '^date.timezone'
+    line: 'date.timezone = America/New_York'
+    state: present
+    insertafter: '[Date]'
+    
+- name: Setting up recommended PHP settings
+  lineinfile:
+    path: /etc/php/7.2/fpm/php.ini
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  with_items:
+    - { regexp: '^short_open_tag', line: 'short_open_tag = Off' }
+    - { regexp: '^magic_quotes_gpc', line: 'magic_quotes_gpc = Off' }
+    - { regexp: '^register_globals', line: 'register_globals = Off' }
+    - { regexp: '^session.auto_start', line: 'session.auto_start = Off' }
+
+#- name: Set php_executable variable to a default if not defined.
+  #set_fact:
+    #php_executable: php
+  #when: php_executable is not defined
+
+#- name: Check if Composer is installed.
+  #stat: "path={{ composer_path }}"
+  #register: composer_bin
+
+#- name: Get Composer installer signature.
+  #uri:
+    #url: https://composer.github.io/installer.sig
+    #return_content: yes
+  #register: composer_installer_signature
+  #when: not composer_bin.stat.exists
+
+#- name: Download Composer installer.
+  #get_url:
+    #url: https://getcomposer.org/installer
+    #dest: /tmp/composer-installer.php
+    #mode: 0755
+    #checksum: "sha384:{{ composer_installer_signature.content }}"
+  #when: not composer_bin.stat.exists
+
+#- name: Run Composer installer.
+  #command: >
+    #{{ php_executable }} composer-installer.php {% if composer_version != '' %} --version={{ composer_version }}{% endif %}
+    #chdir=/tmp
+  #when: not composer_bin.stat.exists
+
+#- name: Move Composer into globally-accessible location.
+  #shell: >
+    #mv /tmp/composer.phar {{ composer_path }}
+    #creates={{ composer_path }}
+  #when: not composer_bin.stat.exists
+
+#- name: Update Composer to latest version (if configured).
+  #shell: >
+    #{{ php_executable }} {{ composer_path }} self-update
+  #register: composer_update
+  #changed_when: "'Updating to version' in composer_update.stdout"
+  #when: composer_keep_updated
+
+#- name: Ensure composer directory exists.
+  #file:
+    #path: "{{ composer_home_path }}"
+    #owner: "{{ composer_home_owner }}"
+    #group: "{{ composer_home_group }}"
+    #state: directory
+
+#- name: Add GitHub OAuth token for Composer (if configured).
+  #become: yes
+  #become_user: "{{ composer_home_owner }}"
+  #template:
+    #src: "auth.json.j2"
+    #dest: "{{ composer_home_path }}/auth.json"
+    #owner: "{{ composer_home_owner }}"
+    #group: "{{ composer_home_group }}"
+  #when: composer_github_oauth_token != ''

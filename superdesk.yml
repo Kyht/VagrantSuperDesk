@@ -1,0 +1,23 @@
+- hosts: all
+  roles:
+    - sysupgrade
+    - bb_keys
+    - es24_docker
+    - newsroom
+    - nginx
+  vars:
+    - database_host: "192.168.13.4"
+    - database_port: "5432"
+    - database_name: "superdesk"
+    - database_user: "spnews"
+    - database_user_password: "spnews_pass"
+    - base_config: "superdesk"
+    - use_ubuntu_nginx: true
+    - use_ubuntu_node: false
+    - tenant_domain: DOMAIN.com
+    - tenant_subdomain: www
+    - superdesk_fqdn: "{% if tenant_subdomain is defined %}{{ tenant_subdomain }}.{{ tenant_domain }}{% else %}{{ tenant_domain  }}{% endif %}"
+    - http_protocol: http
+    - ws_protocol: ws
+    - publisher_ws_port: 5400
+    - iframely_key: b64b68ebd049f0c22b38f5

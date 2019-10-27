@@ -1,0 +1,9 @@
+[program:publisher_analytics]
+directory={{ wp_dir }}
+command=php app/console rabbitmq:consumer analytics_event --messages=250 --env=prod
+autostart=true
+autorestart=true
+stopsignal=INT
+stopwaitsecs=60
+stdout_logfile={{ wp_dir }}/var/log/supervisor_stdout.log
+stderr_logfile={{ wp_dir }}/var/log/supervisor_stderr.log

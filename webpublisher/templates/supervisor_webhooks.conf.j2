@@ -1,0 +1,9 @@
+[program:publisher_webhooks]
+directory={{ wp_dir }}
+command=php app/console rabbitmq:consumer send_webhook --messages=250 --env=prod
+autostart=true
+autorestart=true
+stopsignal=INT
+stopwaitsecs=60
+stdout_logfile={{ wp_dir }}/var/log/stdout.log
+stderr_logfile={{ wp_dir }}/var/log/stderr.log
